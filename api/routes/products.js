@@ -1,70 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../../database');
+const { body, validationResult } = require('express-validator');
+const productsController = require('../controllers/productControllers');
 
-router.get('/', (req, res, next) => {
-    pool.query('SELECT * FROM products', (error, results, fields) => {
-        if (error) throw error;
-        res.status(200).json(results);
-    });
-});
+// Validación básica para el nombre y el precio
+const productValidationRules = [
+  body('name').trim().isLength({ min: 1 }).withMessage('El nombre del producto es obligatorio.'),
+  body('price').isFloat({ gt: 0 }).withMessage('El precio debe ser un número positivo.')
+];
 
-router.post('/', (req, res, next) => {
-    const { name, price } = req.body;
-    pool.query('INSERT INTO products (name, price) VALUES (?, ?)', [name, price], (error, results, fields) => {
-        if (error) throw error;
-        res.status(201).json({
-            message: 'Producto creado',
-            createdProduct: { id: results.insertId, name, price }
-        });
-    });
-});
+// Middleware para manejar los errores de validación
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  next();
+};
 
-router.get('/:productId', (req, res, next) => {
-    const id = req.params.productId;
-    pool.query('SELECT * FROM products WHERE id = ?', [id], (error, results, fields) => {
-        if (error) {
-            throw error;
-        }
-        // Si no se encuentra el producto, devuelve un mensaje de error
-        if (results.length === 0) {
-            return res.status(404).json({
-                message: 'Producto no encontrado'
-            });
-        }
-        // Devuelve el producto encontrado
-        res.status(200).json(results[0]);
-    });
-});
+router.get('/', productsController.getProducts);
+router.get('/:productId', productsController.getProductById);
 
+// Añadir un nuevo producto
+router.post('/', productValidationRules, validate, productsController.createProduct);
 
-router.patch('/:productId', (req, res, next) => {
-    const id = req.params.productId;
-    const { name, price } = req.body;
-    pool.query(
-        'UPDATE products SET name = ?, price = ? WHERE id = ?',
-        [name, price, id],
-        (error, results, fields) => {
-            if (error) throw error;
-            res.status(200).json({
-                message: 'Producto actualizado',
-                productId: id
-            });
-        }
-    );
-});
+// Actualizar un producto existente
+router.patch('/:productId', productValidationRules, validate, productsController.updateProduct);
 
-router.delete('/:productId', (req, res, next) => {
-    const id = req.params.productId;
-    pool.query('DELETE FROM products WHERE id = ?', [id], (error, results, fields) => {
-        if (error) throw error;
-        res.status(200).json({
-            message: 'Producto eliminado',
-            productId: id
-        });
-    });
-});
-
-
+// Eliminar un producto
+router.delete('/:productId', productsController.deleteProduct);
 
 module.exports = router;
