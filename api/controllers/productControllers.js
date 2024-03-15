@@ -1,54 +1,57 @@
-// api/controllers/productControllers.js
 const ProductModel = require('../models/productModel');
 
-const getProducts = (req, res, next) => {
-    ProductModel.findAll((error, results) => {
-        if (error) {
-            return next(error);
-        }
+const getProducts = async (req, res, next) => {
+    try {
+        const results = await ProductModel.findAll();
         res.json(results);
-    });
+    } catch (error) {
+        next(error);
+    }
 };
 
-const getProductById = (req, res, next) => {
-    const { productId } = req.params;
-    ProductModel.findById(productId, (error, results) => {
-        if (error) {
-            return next(error);
+const getProductById = async (req, res, next) => {
+    try {
+        const { productId } = req.params;
+        const product = await ProductModel.findById(productId);
+        if (product) {
+            res.json(product);
+        } else {
+            res.status(404).json({ message: 'Producto no encontrado' });
         }
-        res.json(results.length ? results[0] : {});
-    });
+    } catch (error) {
+        next(error);
+    }
 };
 
-const createProduct = (req, res, next) => {
-    const { name, price } = req.body;
-    ProductModel.create({ name, price }, (error, results) => {
-        if (error) {
-            return next(error);
-        }
-        res.status(201).json({ message: 'Producto creado', createdProduct: { id: results.insertId, name, price } });
-    });
+const createProduct = async (req, res, next) => {
+    try {
+        const { name, price } = req.body;
+        const createdProduct = await ProductModel.create({ name, price });
+        res.status(201).json({ message: 'Producto creado', createdProduct });
+    } catch (error) {
+        next(error);
+    }
 };
 
-const updateProduct = (req, res, next) => {
-    const { productId } = req.params;
-    const { name, price } = req.body;
-    ProductModel.update(productId, { name, price }, (error, results) => {
-        if (error) {
-            return next(error);
-        }
-        res.status(200).json({ message: 'Producto actualizado', productId });
-    });
+const updateProduct = async (req, res, next) => {
+    try {
+        const { productId } = req.params;
+        const { name, price } = req.body;
+        await ProductModel.update(productId, { name, price });
+        res.status(200).json({ message: 'Producto actualizado', updatedProduct: { id: productId, name, price } });
+    } catch (error) {
+        next(error);
+    }
 };
 
-const deleteProduct = (req, res, next) => {
-    const { productId } = req.params;
-    ProductModel.delete(productId, (error, results) => {
-        if (error) {
-            return next(error);
-        }
+const deleteProduct = async (req, res, next) => {
+    try {
+        const { productId } = req.params;
+        await ProductModel.delete(productId);
         res.status(200).json({ message: 'Producto eliminado', productId });
-    });
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {

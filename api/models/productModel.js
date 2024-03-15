@@ -1,24 +1,29 @@
 // api/models/productModel.js
 const pool = require('../../config/database');
 
-const findAll = (callback) => {
-    pool.query('SELECT * FROM products', callback);
+const findAll = async () => {
+    const [rows] = await pool.query('SELECT * FROM products');
+    return rows;
 };
 
-const findById = (id, callback) => {
-    pool.query('SELECT * FROM products WHERE id = ?', [id], callback);
+const findById = async (id) => {
+    const [rows] = await pool.query('SELECT * FROM products WHERE id = ?', [id]);
+    return rows.length ? rows[0] : null;
 };
 
-const create = ({ name, price }, callback) => {
-    pool.query('INSERT INTO products (name, price) VALUES (?, ?)', [name, price], callback);
+const create = async ({ name, price }) => {
+    const [result] = await pool.query('INSERT INTO products (name, price) VALUES (?, ?)', [name, price]);
+    return { id: result.insertId, name, price };
 };
 
-const update = (id, { name, price }, callback) => {
-    pool.query('UPDATE products SET name = ?, price = ? WHERE id = ?', [name, price, id], callback);
+const update = async (id, { name, price }) => {
+    await pool.query('UPDATE products SET name = ?, price = ? WHERE id = ?', [name, price, id]);
+    return { id, name, price };
 };
 
-const deleteProduct = (id, callback) => {
-    pool.query('DELETE FROM products WHERE id = ?', [id], callback);
+const deleteProduct = async (id) => {
+    await pool.query('DELETE FROM products WHERE id = ?', [id]);
+    return id;
 };
 
 module.exports = {
