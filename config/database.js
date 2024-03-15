@@ -1,6 +1,6 @@
 // Importa el paquete dotenv y carga las variables de entorno
 require('dotenv').config();
-const mysql = require('mysql');
+const mysql = require('mysql2/promise');
 
 // Crea un pool de conexiones usando las variables de entorno
 const pool = mysql.createPool({
