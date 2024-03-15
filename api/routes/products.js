@@ -18,16 +18,10 @@ const validate = (req, res, next) => {
   next();
 };
 
-router.get('/', productsController.getProducts);
-router.get('/:productId', productsController.getProductById);
-
-// Añadir un nuevo producto
-router.post('/', productValidationRules, validate, productsController.createProduct);
-
-// Actualizar un producto existente
-router.patch('/:productId', productValidationRules, validate, productsController.updateProduct);
-
-// Eliminar un producto
-router.delete('/:productId', productsController.deleteProduct);
+router.get('/', productsController.getProducts); // get all
+router.get('/:productId', productsController.getProductById); // get by id
+router.post('/', productValidationRules, validate, productsController.createProduct); // insert
+router.patch('/:productId', productValidationRules, validate, productsController.updateProduct); // update
+router.delete('/:productId', productsController.deleteProduct); // delete
 
 module.exports = router;
